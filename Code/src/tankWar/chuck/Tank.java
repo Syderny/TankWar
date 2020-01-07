@@ -7,8 +7,9 @@ import tankWar.Map;
 import tankWar.Map.Color;
 import tankWar.Map.Direction;
 import tankWar.Position;
+import tankWar.Target;
 
-public class Tank extends Chuck {
+public class Tank extends Chuck implements Target {
 	public static final double HEIGHT = 2;
 	public static final double WIDTH = 2;
 	public static final double SPEED = 10;
@@ -139,6 +140,8 @@ public class Tank extends Chuck {
 		}
 		
 	}
+	
+	@Override
 	public void shot() {
 //		System.out.println(getHP());
 		if(!isInvulnerable()) {
@@ -149,6 +152,8 @@ public class Tank extends Chuck {
 			die();
 		}
 	}
+	
+	@Override
 	public void die() {
 		Main.playWav("blast.wav");
 		Position blast = new Position(getPosition().getRow(), getPosition().getCol());

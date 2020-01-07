@@ -1,5 +1,6 @@
 package tankWar;
 
+
 public abstract class Chuck {
 	private Position position;
 	private double height, width;
@@ -46,4 +47,5 @@ public abstract class Chuck {
 			return false;
 		return true;
 	}
+	
 }

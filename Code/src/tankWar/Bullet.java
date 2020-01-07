@@ -31,6 +31,7 @@ public class Bullet {
 		this.color = color;
 	}
 	
+	
 	public Bullet(Map map, Position position, Direction direction, Color color) {
 		setPosition(position);
 		setDirection(direction);
@@ -60,6 +61,7 @@ public class Bullet {
 		}
 		return false;
 	}
+	
 }
 
 class BulletThread implements Runnable {

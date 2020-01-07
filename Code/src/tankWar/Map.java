@@ -14,10 +14,10 @@ import tankWar.chuck.Grass;
 import tankWar.chuck.Tank;
 import tankWar.chuck.Wall;
 
-//import javax.swing.JFrame;
 
-@SuppressWarnings("serial")
 public class Map extends JPanel {
+	private static final long serialVersionUID = -2356444983473096502L;
+
 	public enum Color {
 		RED, BLUE
 	}
@@ -42,7 +42,7 @@ public class Map extends JPanel {
 	private List<Bullet> bullets;
 	private List<Position> booms;
 	private List<Position> blasts;
-	private boolean gameover;
+	public boolean gameover;
 	
 	public String msg = "";
 	
@@ -61,6 +61,8 @@ public class Map extends JPanel {
 		setBullets(new LinkedList<Bullet>());
 		setBooms(new LinkedList<Position>());
 		setBlasts(new LinkedList<Position>());
+		
+		this.setSize((int) (Map.WIDTH*Main.SQURE), (int) (Map.HEIGHT*Main.SQURE));
 		
 		for(int i = 0; i < WIDTH; i+=Wall.WIDTH) {
 			getWalls().add(new Wall(this, new Position(0, i), false));
@@ -260,8 +262,6 @@ public class Map extends JPanel {
 		}
 	}
 	
-
-	
 	public List<Wall> getWalls() {
 		return walls;
 	}
@@ -328,6 +328,5 @@ public class Map extends JPanel {
 	public void setBlasts(List<Position> blasts) {
 		this.blasts = blasts;
 	}
-
 
 }

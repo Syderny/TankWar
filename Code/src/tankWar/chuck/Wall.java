@@ -4,8 +4,9 @@ import tankWar.Chuck;
 import tankWar.Main;
 import tankWar.Map;
 import tankWar.Position;
+import tankWar.Target;
 
-public class Wall extends Chuck {
+public class Wall extends Chuck implements Target {
 	public static final double HEIGHT = 2;
 	public static final double WIDTH = 2;
 
@@ -25,10 +26,15 @@ public class Wall extends Chuck {
 		setBreakable(breakable);
 	}
 	
+	@Override
 	public void shot() {
 		Main.playWav("hit.wav");
+		die();
+	}
+	@Override
+	public void die() {
 		if(isBreakable()) {
 			getMap().getWalls().remove(this);
-		}
+		}		
 	}
 }

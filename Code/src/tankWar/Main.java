@@ -2,10 +2,15 @@ package tankWar;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import javax.sound.sampled.AudioInputStream;
@@ -15,17 +20,22 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JToolBar;
 
 import tankWar.Map.Direction;
 import tankWar.chuck.Tank;
 
 @SuppressWarnings("serial")
 public class Main extends JFrame {
-	public static final int SQURE = 30;
+	public static final int SQURE = 25;
+	public static final int PORT = 8080;
 	
 	public Map map;
+	public JToolBar toolbar;
 	boolean action;
-	Set<Integer> keys = new HashSet<Integer>();
+	private Set<Integer> keys = new HashSet<Integer>();
+	private List<Socket> observers;
+	private ServerSocket server;
 	
 	public Main() {
 		this.setTitle("TankWar");
@@ -33,10 +43,11 @@ public class Main extends JFrame {
 		this.setResizable(false);
 		this.setLocationRelativeTo(null);
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-		this.setVisible(true);
+		
 		
 		map = new Map();
 		this.add(map);
+		
 		
 		Tank redTank = map.getRedTank();
 		Tank blueTank = map.getBlueTank();
@@ -107,7 +118,19 @@ public class Main extends JFrame {
 			
 		}).start();
 		
-		this.addKeyListener(new KeyListener() {
+		map.setFocusable(true);
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				while(true) {
+					map.requestFocus();
+				}
+			}
+			
+		}).start();
+		
+		map.addKeyListener(new KeyListener() {
 
 			@Override
 			public void keyTyped(KeyEvent e) {
@@ -115,40 +138,97 @@ public class Main extends JFrame {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
-				switch(e.getKeyCode()) {
-				case KeyEvent.VK_UP:
-				case KeyEvent.VK_DOWN:
-				case KeyEvent.VK_LEFT:
-				case KeyEvent.VK_RIGHT:
-				case KeyEvent.VK_CONTROL:
-				case KeyEvent.VK_W:
-				case KeyEvent.VK_S:
-				case KeyEvent.VK_A:
-				case KeyEvent.VK_D:
-				case KeyEvent.VK_J:
-					keys.add(e.getKeyCode());
+				synchronized(keys) {
+					switch(e.getKeyCode()) {
+					case KeyEvent.VK_UP:
+					case KeyEvent.VK_DOWN:
+					case KeyEvent.VK_LEFT:
+					case KeyEvent.VK_RIGHT:
+					case KeyEvent.VK_CONTROL:
+					case KeyEvent.VK_W:
+					case KeyEvent.VK_S:
+					case KeyEvent.VK_A:
+					case KeyEvent.VK_D:
+					case KeyEvent.VK_J:
+						keys.add(e.getKeyCode());
+					}
 				}
 			}
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-//				System.out.println(keys);
-				switch(e.getKeyCode()) {
-				case KeyEvent.VK_UP:
-				case KeyEvent.VK_DOWN:
-				case KeyEvent.VK_LEFT:
-				case KeyEvent.VK_RIGHT:
-				case KeyEvent.VK_CONTROL:
-				case KeyEvent.VK_W:
-				case KeyEvent.VK_S:
-				case KeyEvent.VK_A:
-				case KeyEvent.VK_D:
-				case KeyEvent.VK_J:
-					keys.remove((Integer) e.getKeyCode());
+				synchronized(keys) {
+					switch(e.getKeyCode()) {
+					case KeyEvent.VK_UP:
+					case KeyEvent.VK_DOWN:
+					case KeyEvent.VK_LEFT:
+					case KeyEvent.VK_RIGHT:
+					case KeyEvent.VK_CONTROL:
+					case KeyEvent.VK_W:
+					case KeyEvent.VK_S:
+					case KeyEvent.VK_A:
+					case KeyEvent.VK_D:
+					case KeyEvent.VK_J:
+						keys.remove((Integer) e.getKeyCode());
+					}
 				}
 			}
 			
 		});
+		
+		
+		try {
+			server = new ServerSocket(PORT);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		observers = new LinkedList<Socket>();
+		
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while(true) {
+					try {
+						Socket socket = server.accept();
+						observers.add(socket);
+					} catch (IOException e) {
+//						e.printStackTrace();
+						break;
+					}
+				}
+			}
+		}).start();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while(!map.gameover) {
+					try {
+//						Thread.sleep(Map.FRESH_MAP);
+						Thread.sleep(3000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					for(Socket observer: observers) {
+						try {
+							DataOutputStream writer = new DataOutputStream(observer.getOutputStream());
+							writer.writeUTF(String.format("%d %d %d %d ", map.getRedFort().getHP(), map.getBlueFort().getHP(),
+									map.getRedTank().getHP(), map.getBlueTank().getHP()));
+						} catch (IOException e) {
+//							e.printStackTrace();
+							continue;
+						}
+					}
+				}
+				try {
+					server.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
+		
+		
+		this.setVisible(true);
 		playWav("start.wav");
 		map.run();
 		action = false;
@@ -173,6 +253,7 @@ public class Main extends JFrame {
 	
 	public static void main(String[] args) {
 		while(true) {
+			
 			Main m = new Main();
 
 			int confirm = JOptionPane.showConfirmDialog(null, m.map.msg+"\nRestart?", "Game Over", JOptionPane.YES_NO_OPTION);

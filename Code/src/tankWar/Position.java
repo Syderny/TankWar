@@ -1,6 +1,9 @@
 package tankWar;
 
-public class Position {
+import java.io.Serializable;
+
+public class Position implements Serializable {
+	private static final long serialVersionUID = 4086229885164143490L;
 	private double row, col;
 
 	public double getRow() {
@@ -20,6 +23,5 @@ public class Position {
 		setRow(row);
 		setCol(col);
 	}
-	
 	
 }

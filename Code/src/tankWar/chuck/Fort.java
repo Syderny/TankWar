@@ -4,9 +4,10 @@ import tankWar.Chuck;
 import tankWar.Main;
 import tankWar.Map;
 import tankWar.Position;
+import tankWar.Target;
 import tankWar.Map.Color;
 
-public class Fort extends Chuck {
+public class Fort extends Chuck implements Target {
 	public static final double WIDTH = 2;
 	public static final double HEIGHT = 2;
 	public static final int MAX_HP = 5;
@@ -29,6 +30,7 @@ public class Fort extends Chuck {
 		HP = hP;
 	}
 	
+	@Override
 	public void shot() {
 //		System.out.println("fuck");
 		Main.playWav("fire.wav");
@@ -37,7 +39,9 @@ public class Fort extends Chuck {
 			die();
 		}
 	}
-	private void die() {
+	
+	@Override
+	public void die() {
 		Position blast = new Position(getPosition().getRow(), getPosition().getCol());
 		getMap().getBlasts().add(blast);
 		new Thread(new Runnable() {
